@@ -24,7 +24,6 @@ use tracing_subscriber::{
 
 /// A tracing adapater for stackdriver
 pub struct Stackdriver<W = fn() -> io::Stdout> {
-    time: DateTime<Utc>,
     writer: W,
     fields: StackdriverFields,
 }
@@ -43,7 +42,6 @@ where
     /// Initialize the Stackdriver Layer with a custom writer
     pub fn with_writer(writer: W) -> Self {
         Self {
-            time: Utc::now(),
             writer,
             fields: StackdriverFields::default(),
         }
@@ -60,7 +58,7 @@ where
 
         let mut map = serializer.serialize_map(None)?;
 
-        map.serialize_entry("time", &self.time.to_rfc3339())?;
+        map.serialize_entry("time", &Utc::now().to_rfc3339())?;
         map.serialize_entry("severity", &meta.level().as_serde())?;
         map.serialize_entry("target", &meta.target())?;
 
@@ -115,7 +113,6 @@ where
 impl Default for Stackdriver {
     fn default() -> Self {
         Self {
-            time: Utc::now(),
             writer: || std::io::stdout(),
             fields: StackdriverFields::default(),
         }
